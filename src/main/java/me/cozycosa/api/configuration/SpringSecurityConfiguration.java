@@ -1,47 +1,56 @@
 package me.cozycosa.api.configuration;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.web.client.RestTemplateBuilderConfigurer;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import jakarta.annotation.PostConstruct;
+import me.cozycosa.api.users.helpers.JwtAuthFilter;
+import me.cozycosa.api.users.mappers.UserMapper;
+import me.cozycosa.api.users.services.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.util.DefaultUriBuilderFactory;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import static me.cozycosa.api.configuration.AuthSecurityConfig.passwordEncoder;
 
 @Configuration
 @EnableWebSecurity
+@Import(AuthSecurityConfig.class)
 public class SpringSecurityConfiguration {
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    JwtAuthFilter jwtAuthFilter;
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.disable())
-                .authorizeHttpRequests(authz -> authz.anyRequest().permitAll());
-
-        return http.build();
-    }
-
-    /*@Bean
-    public InMemoryUserDetailsManager userDetailsService() {
-        UserDetails user = User.withUsername("user")
-                .password(encoder().encode("userPass"))
-                .roles("USER")
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+        return http
+                .cors(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/api/users/signup/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users/login/**").permitAll()
+                        .anyRequest().authenticated())
+                .authenticationManager(authenticationManager)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
-        return new InMemoryUserDetailsManager(user);
     }
 
     @Bean
-    public PasswordEncoder encoder() {
-        return new BCryptPasswordEncoder();
-    }*/
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        authenticationManagerBuilder.userDetailsService(userService).passwordEncoder(passwordEncoder());
+        return authenticationManagerBuilder.build();
+    }
 }

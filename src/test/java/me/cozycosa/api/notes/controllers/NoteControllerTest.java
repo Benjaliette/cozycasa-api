@@ -2,20 +2,24 @@ package me.cozycosa.api.notes.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import me.cozycosa.api.configuration.AuthSecurityConfig;
 import me.cozycosa.api.configuration.SpringSecurityConfiguration;
 import me.cozycosa.api.notes.DTO.NoteDto;
-import me.cozycosa.api.notes.entities.NoteEntity;
 import me.cozycosa.api.notes.services.NoteService;
+import me.cozycosa.api.users.mappers.UserMapper;
+import me.cozycosa.api.users.services.UserService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -25,8 +29,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.util.AssertionErrors.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -37,15 +41,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class NoteControllerTest {
     private NoteDto note1;
     private NoteDto updatedNote1;
+    private UserDetails currentUser;
 
     @Autowired
-    private WebApplicationContext context;
+    WebApplicationContext context;
 
     @Autowired
     MockMvc mockMvc;
 
     @MockBean
     NoteService service;
+
+    @MockBean
+    UserService userService;
+
+    @MockBean
+    AuthenticationManager authManager;
+
 
     private static ObjectMapper mapper = new ObjectMapper();
 
@@ -68,6 +80,13 @@ public class NoteControllerTest {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
+
+        currentUser = User.builder()
+                .username("admin@mail.com")
+                .password("123456")
+                .build();
+
+        when(userService.loadUserByUsername(ArgumentMatchers.any())).thenReturn(currentUser);
     }
 
     @Test
@@ -78,7 +97,8 @@ public class NoteControllerTest {
 
         when(service.findAll()).thenReturn(noteList);
 
-        mockMvc.perform(get("/api/notes"))
+        mockMvc.perform(get("/api/notes")
+                        .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.hasSize(1)))
                 .andExpect(jsonPath("[0].title", Matchers.equalTo("Titre test")));
@@ -88,7 +108,8 @@ public class NoteControllerTest {
     void testGetNotesById() throws Exception {
         when(service.findById(ArgumentMatchers.any())).thenReturn(note1);
 
-        mockMvc.perform(get("/api/notes/{id}", 1))
+        mockMvc.perform(get("/api/notes/{id}", 1)
+                        .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", Matchers.equalTo(1)))
                 .andExpect(jsonPath("$.title", Matchers.equalTo("Titre test")));
@@ -101,6 +122,7 @@ public class NoteControllerTest {
         String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(note1);
 
         mockMvc.perform(post("/api/notes")
+                        .with(user(userService.loadUserByUsername("admin@mail.com")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding("utf-8")
                         .content(json)
@@ -117,7 +139,8 @@ public class NoteControllerTest {
         String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(note1);
 
         mockMvc.perform(put("/api/notes/{id}", 1)
-                .contentType(MediaType.APPLICATION_JSON)
+                        .with(user(userService.loadUserByUsername("admin@mail.com")))
+                        .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding("utf-8")
                         .content(json)
                         .accept(MediaType.APPLICATION_JSON))
@@ -130,7 +153,8 @@ public class NoteControllerTest {
     void testDeleteNote() throws Exception {
         when(service.delete(ArgumentMatchers.any())).thenReturn("La note a été supprimée");
 
-        String response = mockMvc.perform(delete("/api/notes/{id}", 1))
+        String response = mockMvc.perform(delete("/api/notes/{id}", 1)
+                        .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk()).andReturn()
                 .getResponse().getContentAsString();
 
