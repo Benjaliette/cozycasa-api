@@ -2,36 +2,23 @@ package me.cozycosa.api.notes.mappers;
 
 import me.cozycosa.api.notes.DTO.NoteDto;
 import me.cozycosa.api.notes.entities.NoteEntity;
+import me.cozycosa.api.shared.CycleAvoidingMappingContext;
+import me.cozycosa.api.users.mappers.UserMapper;
+import org.mapstruct.*;
 
-public class NoteMapper implements INoteMapper {
-    @Override
-    public NoteDto entityToDto(NoteEntity noteEntity) {
-        if (noteEntity == null) {
-            return null;
-        }
+import java.util.List;
 
-        NoteDto noteDto = NoteDto.builder()
-                .id(noteEntity.getId())
-                .title(noteEntity.getTitle())
-                .content(noteEntity.getContent())
-                .createdAt(noteEntity.getCreatedAt())
-                .updatedAt(noteEntity.getUpdatedAt())
-                .build();
+@Mapper(componentModel = "spring", uses = UserMapper.class)
+public interface NoteMapper {
+    @Mapping(target = "user")
+    NoteDto entityToDto(NoteEntity noteEntity);
 
-        return noteDto;
-    }
+    List<NoteDto> listEntityToListDto(List<NoteEntity> noteEntityList);
 
-    @Override
-    public NoteEntity dtoToEntity(NoteDto noteDto) {
-        if (noteDto == null) {
-            return null;
-        }
+    @InheritInverseConfiguration
+    @Mapping(target = "id", ignore = true)
+    @Mapping(source = "user", target = "user", ignore = true)
+    NoteEntity dtoToEntity(NoteDto noteDto);
 
-        NoteEntity noteEntity = NoteEntity.builder()
-                .title(noteDto.getTitle())
-                .content(noteDto.getContent())
-                .build();
-
-        return noteEntity;
-    }
+    List<NoteEntity> listDtoToListEntity(List<NoteDto> noteDtoList);
 }

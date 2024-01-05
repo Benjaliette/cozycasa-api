@@ -2,11 +2,9 @@ package me.cozycosa.api.notes.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import me.cozycosa.api.configuration.AuthSecurityConfig;
 import me.cozycosa.api.configuration.SpringSecurityConfiguration;
 import me.cozycosa.api.notes.DTO.NoteDto;
 import me.cozycosa.api.notes.services.NoteService;
-import me.cozycosa.api.users.mappers.UserMapper;
 import me.cozycosa.api.users.services.UserService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +18,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -117,7 +114,7 @@ public class NoteControllerTest {
 
     @Test
     void testCreateNote() throws Exception {
-        when(service.create(ArgumentMatchers.any())).thenReturn(note1);
+        when(service.create(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(note1);
 
         String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(note1);
 

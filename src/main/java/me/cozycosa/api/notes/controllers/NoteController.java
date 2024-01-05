@@ -3,11 +3,17 @@ package me.cozycosa.api.notes.controllers;
 import lombok.RequiredArgsConstructor;
 import me.cozycosa.api.notes.DTO.NoteDto;
 import me.cozycosa.api.notes.services.NoteService;
+import me.cozycosa.api.users.DTO.UserDto;
+import me.cozycosa.api.users.entities.UserEntity;
+import me.cozycosa.api.users.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -17,6 +23,9 @@ public class NoteController {
 
     @Autowired
     private NoteService service;
+
+    @Autowired
+    private UserService userService;
 
     @GetMapping()
     public ResponseEntity<List<NoteDto>> getAllNotes() {
@@ -29,8 +38,9 @@ public class NoteController {
     }
 
     @PostMapping()
-    public ResponseEntity<NoteDto> createNote(@RequestBody NoteDto note) {
-        return new ResponseEntity<>(service.create(note), HttpStatus.CREATED);
+    public ResponseEntity<NoteDto> createNote(@RequestBody NoteDto note, Principal principal) {
+        UserEntity currentUser = userService.getUserBy(principal.getName());
+        return new ResponseEntity<>(service.create(note, currentUser), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")

@@ -2,15 +2,14 @@ package me.cozycosa.api.notes.services;
 
 import me.cozycosa.api.notes.DTO.NoteDto;
 import me.cozycosa.api.notes.entities.NoteEntity;
-import me.cozycosa.api.notes.mappers.INoteMapper;
 import me.cozycosa.api.notes.mappers.NoteMapper;
 import me.cozycosa.api.notes.repositories.NoteRepository;
+import me.cozycosa.api.users.entities.UserEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class NoteService {
@@ -19,7 +18,7 @@ public class NoteService {
     private NoteRepository repository;
 
     @Autowired
-    private INoteMapper mapper;
+    private NoteMapper mapper;
 
     public List<NoteDto> findAll() {
         repository.findAll().forEach(noteEntity -> {
@@ -39,8 +38,9 @@ public class NoteService {
         return mapper.entityToDto(note);
     }
 
-    public NoteDto create(NoteDto note) {
+    public NoteDto create(NoteDto note, UserEntity currentUser) {
         NoteEntity noteToSave = mapper.dtoToEntity(note);
+        noteToSave.setUser(currentUser);
 
         NoteEntity savedNote = repository.save(noteToSave);
 

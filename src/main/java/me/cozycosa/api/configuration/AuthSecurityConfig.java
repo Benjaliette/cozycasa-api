@@ -1,6 +1,5 @@
 package me.cozycosa.api.configuration;
 
-import me.cozycosa.api.users.mappers.UserMapper;
 import me.cozycosa.api.users.services.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +14,7 @@ public class AuthSecurityConfig {
     }
 
     @Bean
-    public UserMapper userMapper(PasswordEncoder passwordEncoder) {
-        return new UserMapper(passwordEncoder);
+    public UserService userService(PasswordEncoder passwordEncoder) {
+        return new UserService(passwordEncoder);
     }
 }
