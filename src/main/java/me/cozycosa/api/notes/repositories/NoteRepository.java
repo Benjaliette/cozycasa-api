@@ -15,7 +15,8 @@ public interface NoteRepository extends JpaRepository<NoteEntity, Long> {
     List<NoteEntity> findAll();
 
     @Override
-    Optional<NoteEntity> findById(Long aLong);
+    @Query(value = "SELECT n FROM NoteEntity n JOIN FETCH n.user u WHERE n.id = :id AND u.email = ?#{ principal?.username }")
+    Optional<NoteEntity> findById(Long id);
 
     @Override
     NoteEntity save(NoteEntity entity);

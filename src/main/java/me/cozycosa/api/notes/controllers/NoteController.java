@@ -9,6 +9,8 @@ import me.cozycosa.api.users.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -33,8 +35,10 @@ public class NoteController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<NoteDto> getNotesById(@PathVariable Long id) {
-        return new ResponseEntity<>(service.findById(id), HttpStatus.OK);
+    public ResponseEntity<NoteDto> getNotesById(@PathVariable Long id, Principal principal) throws Exception {
+        // String name = principal.getName();
+
+        return new ResponseEntity<>(service.findById(id, principal), HttpStatus.OK);
     }
 
     @PostMapping()

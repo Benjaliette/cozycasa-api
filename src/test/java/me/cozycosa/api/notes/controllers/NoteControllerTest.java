@@ -103,7 +103,7 @@ public class NoteControllerTest {
 
     @Test
     void testGetNotesById() throws Exception {
-        when(service.findById(ArgumentMatchers.any())).thenReturn(note1);
+        when(service.findById(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(note1);
 
         mockMvc.perform(get("/api/notes/{id}", 1)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))

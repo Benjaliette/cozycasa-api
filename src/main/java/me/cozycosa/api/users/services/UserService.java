@@ -93,8 +93,6 @@ public class UserService implements UserDetailsService {
 
         UserDto user = userMapper.userEntityToDto(userEntity);
 
-        user.setNotes(noteMapper.listEntityToListDto(userEntity.getNotes()));
-
         return user;
     }
 }
