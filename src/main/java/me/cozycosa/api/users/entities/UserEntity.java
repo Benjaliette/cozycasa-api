@@ -2,6 +2,7 @@ package me.cozycosa.api.users.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import me.cozycosa.api.homes.entities.HomeEntity;
 import me.cozycosa.api.notes.entities.NoteEntity;
 import me.cozycosa.api.shared.BaseEntity;
 import org.springframework.security.core.GrantedAuthority;
@@ -43,6 +44,9 @@ public class UserEntity extends BaseEntity implements UserDetails {
 
     @OneToMany(mappedBy = "user")
     private List<NoteEntity> notes;
+
+    @ManyToMany(mappedBy = "users")
+    private List<HomeEntity> homes;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

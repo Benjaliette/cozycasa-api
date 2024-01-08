@@ -9,7 +9,6 @@ import java.util.Map;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
-    @Mapping(target = "notes", ignore = true)
     public UserDto userEntityToDto(UserEntity userEntity);
 
 

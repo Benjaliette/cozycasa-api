@@ -1,10 +1,12 @@
-package me.cozycosa.api.notes.controllers;
+package me.cozycosa.api.homes.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import me.cozycosa.api.configuration.SpringSecurityConfiguration;
-import me.cozycosa.api.notes.DTO.NoteDto;
-import me.cozycosa.api.notes.services.NoteService;
+import me.cozycosa.api.homes.DTO.HomeDto;
+import me.cozycosa.api.homes.services.HomeService;
+import me.cozycosa.api.users.DTO.UserDto;
+import me.cozycosa.api.users.entities.UserEntity;
 import me.cozycosa.api.users.services.UserService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,15 +18,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Mockito.when;
@@ -32,14 +32,17 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.util.AssertionErrors.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = NoteController.class)
+@WebMvcTest(controllers = HomeController.class)
 @Import(SpringSecurityConfiguration.class)
-public class NoteControllerTest {
-    private NoteDto note1;
-    private NoteDto updatedNote1;
-    private UserDetails currentUser;
+public class HomeControllerTest {
+    private HomeDto home1;
+    private HomeDto home2;
+    private UserEntity currentUserEntity;
+    private UserDto currentUserDto;
+    private UserDto otherUserDto;
 
     @Value("${api.key}")
     private String apiKey;
@@ -51,14 +54,10 @@ public class NoteControllerTest {
     MockMvc mockMvc;
 
     @MockBean
-    NoteService service;
-
-    @MockBean
     UserService userService;
 
     @MockBean
-    AuthenticationManager authManager;
-
+    HomeService homeService;
 
     private static ObjectMapper mapper = new ObjectMapper();
 
@@ -66,65 +65,75 @@ public class NoteControllerTest {
     public void setup() {
         mockMvc = MockMvcBuilders.webAppContextSetup(this.context).apply(springSecurity()).build();
 
-        note1 = NoteDto.builder()
-                .id(1L)
-                .title("Titre test")
-                .content("Contenu test")
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-        updatedNote1 = NoteDto.builder()
-                .id(1L)
-                .title("Titre test màj")
-                .content("Mise à jour du contenu test")
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-        currentUser = User.builder()
+        currentUserEntity = UserEntity.builder()
                 .username("admin@mail.com")
                 .password("123456")
                 .build();
 
-        when(userService.loadUserByUsername(ArgumentMatchers.any())).thenReturn(currentUser);
+        currentUserDto = UserDto.builder()
+                .username("admin@mail.com")
+                .password("123456")
+                .build();
+
+        otherUserDto = UserDto.builder()
+                .username("user@mail.com")
+                .password("azerty")
+                .build();
+
+        home1 = HomeDto.builder()
+                .id(1L)
+                .name("Maison test")
+                .users(Arrays.asList(currentUserDto))
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        home2 = HomeDto.builder()
+                .id(1L)
+                .name("Maison test updated")
+                .users(Arrays.asList(currentUserDto))
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        when(userService.loadUserByUsername(ArgumentMatchers.any())).thenReturn(currentUserEntity);
     }
 
     @Test
-    void testGetAllNotes() throws Exception {
-        List<NoteDto> noteList = new ArrayList<>();
+    void testGetAllHomes() throws Exception {
+        List<HomeDto> homeList = new ArrayList<>();
 
-        noteList.add(note1);
+        homeList.add(home1);
 
-        when(service.findAll()).thenReturn(noteList);
+        when(homeService.findAll()).thenReturn(homeList);
 
-        mockMvc.perform(get("/api/notes")
+        mockMvc.perform(get("/api/homes")
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.hasSize(1)))
-                .andExpect(jsonPath("[0].title", Matchers.equalTo("Titre test")));
+                .andExpect(jsonPath("[0].name", Matchers.equalTo("Maison test")));
     }
 
     @Test
-    void testGetNotesById() throws Exception {
-        when(service.findById(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(note1);
+    void testGetHomeById() throws Exception {
+        when(homeService.findById(ArgumentMatchers.any())).thenReturn(home1);
 
-        mockMvc.perform(get("/api/notes/{id}", 1)
+        mockMvc.perform(get("/api/homes/{id}", 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", Matchers.equalTo(1)))
-                .andExpect(jsonPath("$.title", Matchers.equalTo("Titre test")));
+                .andExpect(jsonPath("$.name", Matchers.equalTo("Maison test")));
     }
 
     @Test
-    void testCreateNote() throws Exception {
-        when(service.create(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(note1);
+    void testCreateHome() throws Exception {
+        when(homeService.create(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(home1);
 
-        String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(note1);
+        String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(home1);
 
-        mockMvc.perform(post("/api/notes")
+        mockMvc.perform(post("/api/homes")
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com")))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -133,16 +142,16 @@ public class NoteControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", Matchers.equalTo(1)))
-                .andExpect(jsonPath("$.title", Matchers.equalTo("Titre test")));
+                .andExpect(jsonPath("$.name", Matchers.equalTo("Maison test")));
     }
 
     @Test
-    void testUpdateNote() throws Exception {
-        when(service.update(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(updatedNote1);
+    void testUpdateHome() throws Exception {
+        when(homeService.update(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(home2);
 
-        String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(note1);
+        String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(home2);
 
-        mockMvc.perform(put("/api/notes/{id}", 1)
+        mockMvc.perform(put("/api/homes/{id}", 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com")))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -151,19 +160,19 @@ public class NoteControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", Matchers.equalTo(1)))
-                .andExpect(jsonPath("$.title", Matchers.equalTo("Titre test màj")));
+                .andExpect(jsonPath("$.name", Matchers.equalTo("Maison test updated")));
     }
 
     @Test
-    void testDeleteNote() throws Exception {
-        when(service.delete(ArgumentMatchers.any())).thenReturn("La note a été supprimée");
+    void testDeleteHome() throws Exception {
+        when(homeService.delete(ArgumentMatchers.any())).thenReturn("Le foyer a été supprimé");
 
-        String response = mockMvc.perform(delete("/api/notes/{id}", 1)
+        String response = mockMvc.perform(delete("/api/homes/{id}", 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk()).andReturn()
                 .getResponse().getContentAsString();
 
-        assertEquals("", "La note a été supprimée", response);
+        assertEquals("", "Le foyer a été supprimé", response);
     }
 }

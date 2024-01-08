@@ -19,7 +19,6 @@ public class UserDto {
     private String email;
     private String password;
     private boolean admin;
-    private List<NoteDto> notes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

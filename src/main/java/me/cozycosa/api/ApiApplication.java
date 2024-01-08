@@ -7,7 +7,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"me.cozycosa.api"})
 public class ApiApplication {
 
     public static void main(String[] args) {
