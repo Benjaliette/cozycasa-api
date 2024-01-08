@@ -3,6 +3,7 @@ package me.cozycosa.api.configuration;
 import me.cozycosa.api.users.helpers.JwtAuthFilter;
 import me.cozycosa.api.users.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -23,6 +24,9 @@ import static me.cozycosa.api.configuration.AuthSecurityConfig.passwordEncoder;
 @EnableWebSecurity
 @Import(AuthSecurityConfig.class)
 public class SpringSecurityConfiguration {
+    @Value("${api.key}")
+    private String apiKey;
+
     @Autowired
     private UserService userService;
 
@@ -31,8 +35,9 @@ public class SpringSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
-        return http
-                .cors(AbstractHttpConfigurer::disable)
+        http.addFilterBefore(new ApiKeyFilter(apiKey), UsernamePasswordAuthenticationFilter.class);
+
+        http.cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -40,8 +45,9 @@ public class SpringSecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/api/users/login/**").permitAll()
                         .anyRequest().authenticated())
                 .authenticationManager(authenticationManager)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
     @Bean

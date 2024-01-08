@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -39,6 +40,9 @@ public class NoteControllerTest {
     private NoteDto note1;
     private NoteDto updatedNote1;
     private UserDetails currentUser;
+
+    @Value("${api.key}")
+    private String apiKey;
 
     @Autowired
     WebApplicationContext context;
@@ -95,6 +99,7 @@ public class NoteControllerTest {
         when(service.findAll()).thenReturn(noteList);
 
         mockMvc.perform(get("/api/notes")
+                        .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.hasSize(1)))
@@ -106,6 +111,7 @@ public class NoteControllerTest {
         when(service.findById(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(note1);
 
         mockMvc.perform(get("/api/notes/{id}", 1)
+                        .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", Matchers.equalTo(1)))
@@ -119,6 +125,7 @@ public class NoteControllerTest {
         String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(note1);
 
         mockMvc.perform(post("/api/notes")
+                        .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding("utf-8")
@@ -136,6 +143,7 @@ public class NoteControllerTest {
         String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(note1);
 
         mockMvc.perform(put("/api/notes/{id}", 1)
+                        .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .characterEncoding("utf-8")
@@ -151,6 +159,7 @@ public class NoteControllerTest {
         when(service.delete(ArgumentMatchers.any())).thenReturn("La note a été supprimée");
 
         String response = mockMvc.perform(delete("/api/notes/{id}", 1)
+                        .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk()).andReturn()
                 .getResponse().getContentAsString();
