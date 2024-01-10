@@ -2,6 +2,7 @@ package me.cozycosa.api.homes.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import me.cozycosa.api.notes.entities.NoteEntity;
 import me.cozycosa.api.shared.BaseEntity;
 import me.cozycosa.api.users.entities.UserEntity;
 
@@ -34,4 +35,7 @@ public class HomeEntity extends BaseEntity {
             joinColumns = @JoinColumn(name = "home_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     private List<UserEntity> users = new ArrayList<>();
+
+    @OneToMany(mappedBy = "home", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<NoteEntity> notes;
 }

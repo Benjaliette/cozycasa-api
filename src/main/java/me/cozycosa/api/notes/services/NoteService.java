@@ -1,6 +1,9 @@
 package me.cozycosa.api.notes.services;
 
+import jakarta.transaction.Transactional;
 import me.cozycosa.api.exceptions.RecordNotAllowedException;
+import me.cozycosa.api.homes.entities.HomeEntity;
+import me.cozycosa.api.homes.repositories.HomeRepository;
 import me.cozycosa.api.notes.DTO.NoteDto;
 import me.cozycosa.api.notes.entities.NoteEntity;
 import me.cozycosa.api.notes.mappers.NoteMapper;
@@ -21,21 +24,18 @@ public class NoteService {
     private NoteRepository repository;
 
     @Autowired
+    private HomeRepository homeRepository;
+
+    @Autowired
     private NoteMapper mapper;
 
-    public List<NoteDto> findAll() {
-        repository.findAll().forEach(noteEntity -> {
-            noteEntity.getId();
-        });
+    public List<NoteDto> findAll(Long homeId) {
+        List<NoteEntity> noteEntityList = repository.findAll(homeId);
 
-        return repository.findAll()
-                .stream()
-                .sorted(Comparator.comparing(noteEntity -> noteEntity.getId()))
-                .map(noteEntity -> mapper.entityToDto(noteEntity))
-                .toList();
+        return mapper.listEntityToListDto(noteEntityList);
     }
 
-    public NoteDto findById(Long id, Principal principal) throws Exception {
+    public NoteDto findById(Long id) throws Exception {
         NoteEntity note = repository.findById(id).orElseThrow(() -> {
             return new RecordNotAllowedException(HttpStatus.FORBIDDEN.value(), "Vous n'êtes pas à l'origine de cette note");
         });
@@ -43,9 +43,16 @@ public class NoteService {
         return mapper.entityToDto(note);
     }
 
-    public NoteDto create(NoteDto note, UserEntity currentUser) {
+    @Transactional
+    public NoteDto create(NoteDto note, Long homeid, UserEntity currentUser) {
         NoteEntity noteToSave = mapper.dtoToEntity(note);
         noteToSave.setUser(currentUser);
+
+        HomeEntity home = homeRepository.findById(homeid).orElseThrow(() -> {
+            return new RecordNotAllowedException(HttpStatus.FORBIDDEN.value(),
+                    "Le foyer n'a pas pu être récupéré");
+        });
+        noteToSave.setHome(home);
 
         NoteEntity savedNote = repository.save(noteToSave);
 

@@ -83,7 +83,6 @@ public class HomeControllerTest {
         home1 = HomeDto.builder()
                 .id(1L)
                 .name("Maison test")
-                .users(Arrays.asList(currentUserDto))
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -91,7 +90,6 @@ public class HomeControllerTest {
         home2 = HomeDto.builder()
                 .id(1L)
                 .name("Maison test updated")
-                .users(Arrays.asList(currentUserDto))
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

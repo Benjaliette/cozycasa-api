@@ -14,7 +14,6 @@ import java.util.List;
 public class HomeDto {
     private Long id;
     private String name;
-    private List<UserDto> users;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

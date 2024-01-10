@@ -15,7 +15,6 @@ import java.util.List;
 
 @Mapper(componentModel = "spring", uses = UserMapper.class)
 public interface HomeMapper {
-    @Mapping(target = "users")
     public HomeDto homeEntityToDto(HomeEntity homeEntity);
 
     List<HomeDto> listEntityToListDto(List<HomeEntity> homeEntityList);
@@ -23,7 +22,7 @@ public interface HomeMapper {
 
     @InheritInverseConfiguration
     @Mapping(target = "id", ignore = true)
-    public HomeEntity homeDtoToEntity(HomeDto userDto);
+    public HomeEntity homeDtoToEntity(HomeDto homeDto);
 
     List<HomeEntity> listDtoToListEntity(List<HomeDto> homeDtoList);
 }

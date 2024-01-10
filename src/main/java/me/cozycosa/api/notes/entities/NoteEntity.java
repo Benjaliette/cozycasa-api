@@ -3,8 +3,10 @@ package me.cozycosa.api.notes.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import me.cozycosa.api.homes.entities.HomeEntity;
 import me.cozycosa.api.shared.BaseEntity;
 import me.cozycosa.api.users.entities.UserEntity;
+import org.hibernate.annotations.Cascade;
 
 import javax.validation.constraints.NotNull;
 
@@ -29,7 +31,11 @@ public class NoteEntity extends BaseEntity {
     @NotNull(message = "La note doit avoir au moins un texte")
     private String content;
 
-    @ManyToOne()
+    @ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     private UserEntity user;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = CascadeType.ALL)
+    @JoinColumn(name = "home_id")
+    private HomeEntity home;
 }

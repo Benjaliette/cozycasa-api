@@ -96,9 +96,9 @@ public class NoteControllerTest {
 
         noteList.add(note1);
 
-        when(service.findAll()).thenReturn(noteList);
+        when(service.findAll(ArgumentMatchers.any())).thenReturn(noteList);
 
-        mockMvc.perform(get("/api/notes")
+        mockMvc.perform(get("/api/{homeId}/notes", 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk())
@@ -108,9 +108,9 @@ public class NoteControllerTest {
 
     @Test
     void testGetNotesById() throws Exception {
-        when(service.findById(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(note1);
+        when(service.findById(ArgumentMatchers.any())).thenReturn(note1);
 
-        mockMvc.perform(get("/api/notes/{id}", 1)
+        mockMvc.perform(get("/api/{homeId}/notes/{id}", 1, 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk())
@@ -120,11 +120,11 @@ public class NoteControllerTest {
 
     @Test
     void testCreateNote() throws Exception {
-        when(service.create(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(note1);
+        when(service.create(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(note1);
 
         String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(note1);
 
-        mockMvc.perform(post("/api/notes")
+        mockMvc.perform(post("/api/{homeId}/notes", 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com")))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -142,7 +142,7 @@ public class NoteControllerTest {
 
         String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(note1);
 
-        mockMvc.perform(put("/api/notes/{id}", 1)
+        mockMvc.perform(put("/api/{homeId}/notes/{id}", 1, 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com")))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -158,7 +158,7 @@ public class NoteControllerTest {
     void testDeleteNote() throws Exception {
         when(service.delete(ArgumentMatchers.any())).thenReturn("La note a été supprimée");
 
-        String response = mockMvc.perform(delete("/api/notes/{id}", 1)
+        String response = mockMvc.perform(delete("/api/{homeId}/notes/{id}", 1, 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk()).andReturn()

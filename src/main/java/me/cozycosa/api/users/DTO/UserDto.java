@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.Value;
+import me.cozycosa.api.homes.DTO.HomeDto;
 import me.cozycosa.api.notes.DTO.NoteDto;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -19,6 +20,7 @@ public class UserDto {
     private String email;
     private String password;
     private boolean admin;
+    private List<HomeDto> homes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

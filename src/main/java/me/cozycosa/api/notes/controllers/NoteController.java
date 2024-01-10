@@ -1,6 +1,10 @@
 package me.cozycosa.api.notes.controllers;
 
 import lombok.RequiredArgsConstructor;
+import me.cozycosa.api.homes.DTO.HomeDto;
+import me.cozycosa.api.homes.entities.HomeEntity;
+import me.cozycosa.api.homes.mappers.HomeMapper;
+import me.cozycosa.api.homes.services.HomeService;
 import me.cozycosa.api.notes.DTO.NoteDto;
 import me.cozycosa.api.notes.services.NoteService;
 import me.cozycosa.api.users.DTO.UserDto;
@@ -20,7 +24,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/notes")
+@RequestMapping("/api/{homeId}/notes")
 public class NoteController {
 
     @Autowired
@@ -29,22 +33,26 @@ public class NoteController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private HomeService homeService;
+
+    @Autowired
+    private HomeMapper homeMapper;
+
     @GetMapping()
-    public ResponseEntity<List<NoteDto>> getAllNotes() {
-        return new ResponseEntity<>(service.findAll(), HttpStatus.OK);
+    public ResponseEntity<List<NoteDto>> getAllNotes(@PathVariable Long homeId) {
+        return new ResponseEntity<>(service.findAll(homeId), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<NoteDto> getNotesById(@PathVariable Long id, Principal principal) throws Exception {
-        // String name = principal.getName();
-
-        return new ResponseEntity<>(service.findById(id, principal), HttpStatus.OK);
+    public ResponseEntity<NoteDto> getNotesById(@PathVariable Long id) throws Exception {
+        return new ResponseEntity<>(service.findById(id), HttpStatus.OK);
     }
 
     @PostMapping()
-    public ResponseEntity<NoteDto> createNote(@RequestBody NoteDto note, Principal principal) {
+    public ResponseEntity<NoteDto> createNote(@RequestBody NoteDto note, @PathVariable Long homeId, Principal principal) {
         UserEntity currentUser = userService.getUserBy(principal.getName());
-        return new ResponseEntity<>(service.create(note, currentUser), HttpStatus.CREATED);
+        return new ResponseEntity<>(service.create(note, homeId, currentUser), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")

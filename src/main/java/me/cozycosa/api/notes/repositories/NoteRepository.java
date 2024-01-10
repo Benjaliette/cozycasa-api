@@ -10,9 +10,8 @@ import java.util.Optional;
 
 @Repository
 public interface NoteRepository extends JpaRepository<NoteEntity, Long> {
-    @Override
-    @Query(value = "SELECT n FROM NoteEntity n")
-    List<NoteEntity> findAll();
+    @Query(value = "SELECT n FROM NoteEntity n JOIN FETCH n.home h WHERE h.id = :homeId")
+    List<NoteEntity> findAll(Long homeId);
 
     @Override
     @Query(value = "SELECT n FROM NoteEntity n JOIN FETCH n.user u WHERE n.id = :id AND u.email = ?#{ principal?.username }")
