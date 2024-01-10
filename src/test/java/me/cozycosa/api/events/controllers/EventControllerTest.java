@@ -1,12 +1,10 @@
-package me.cozycosa.api.homes.controllers;
+package me.cozycosa.api.events.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import me.cozycosa.api.configuration.SpringSecurityConfiguration;
-import me.cozycosa.api.homes.DTO.HomeDto;
-import me.cozycosa.api.homes.services.HomeService;
-import me.cozycosa.api.users.DTO.UserDto;
-import me.cozycosa.api.users.entities.UserEntity;
+import me.cozycosa.api.events.DTO.EventDto;
+import me.cozycosa.api.events.services.EventService;
 import me.cozycosa.api.users.services.TokenBlackList;
 import me.cozycosa.api.users.services.UserService;
 import org.hamcrest.Matchers;
@@ -19,13 +17,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Mockito.when;
@@ -33,17 +33,16 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.util.AssertionErrors.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = HomeController.class)
+@WebMvcTest(controllers = EventController.class)
 @Import(SpringSecurityConfiguration.class)
-public class HomeControllerTest {
-    private HomeDto home1;
-    private HomeDto home2;
-    private UserEntity currentUserEntity;
-    private UserDto currentUserDto;
-    private UserDto otherUserDto;
+public class EventControllerTest {
+    private EventDto event1;
+    private EventDto updatedEvent1;
+    private UserDetails currentUser;
 
     @Value("${api.key}")
     private String apiKey;
@@ -55,10 +54,13 @@ public class HomeControllerTest {
     MockMvc mockMvc;
 
     @MockBean
+    EventService service;
+
+    @MockBean
     UserService userService;
 
     @MockBean
-    HomeService homeService;
+    AuthenticationManager authManager;
 
     @MockBean
     TokenBlackList tokenBlackList;
@@ -69,73 +71,69 @@ public class HomeControllerTest {
     public void setup() {
         mockMvc = MockMvcBuilders.webAppContextSetup(this.context).apply(springSecurity()).build();
 
-        currentUserEntity = UserEntity.builder()
-                .username("admin@mail.com")
-                .password("123456")
-                .build();
-
-        currentUserDto = UserDto.builder()
-                .username("admin@mail.com")
-                .password("123456")
-                .build();
-
-        otherUserDto = UserDto.builder()
-                .username("user@mail.com")
-                .password("azerty")
-                .build();
-
-        home1 = HomeDto.builder()
+        event1 = EventDto.builder()
                 .id(1L)
-                .name("Maison test")
+                .startDate(LocalDateTime.now())
+                .endDate(LocalDateTime.now().plusHours(1))
+                .title("Titre test")
+                .content("Contenu test")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        home2 = HomeDto.builder()
+        updatedEvent1 = EventDto.builder()
                 .id(1L)
-                .name("Maison test updated")
+                .startDate(LocalDateTime.now())
+                .endDate(LocalDateTime.now().plusHours(1))
+                .title("Titre test maj")
+                .content("Contenu test maj")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        when(userService.loadUserByUsername(ArgumentMatchers.any())).thenReturn(currentUserEntity);
+        currentUser = User.builder()
+                .username("admin@mail.com")
+                .password("123456")
+                .build();
+
+        when(userService.loadUserByUsername(ArgumentMatchers.any())).thenReturn(currentUser);
     }
 
     @Test
-    void testGetAllHomes() throws Exception {
-        List<HomeDto> homeList = new ArrayList<>();
+    void testGetAllEvents() throws Exception {
+        List<EventDto> eventList = new ArrayList<>();
 
-        homeList.add(home1);
+        eventList.add(event1);
 
-        when(homeService.findAll()).thenReturn(homeList);
+        when(service.findAll(ArgumentMatchers.any())).thenReturn(eventList);
 
-        mockMvc.perform(get("/api/homes")
+        mockMvc.perform(get("/api/{homeId}/events", 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.hasSize(1)))
-                .andExpect(jsonPath("[0].name", Matchers.equalTo("Maison test")));
+                .andExpect(jsonPath("[0].title", Matchers.equalTo("Titre test")));
     }
 
     @Test
-    void testGetHomeById() throws Exception {
-        when(homeService.findById(ArgumentMatchers.any())).thenReturn(home1);
+    void testGetEventById() throws Exception {
+        when(service.findById(ArgumentMatchers.any())).thenReturn(event1);
 
-        mockMvc.perform(get("/api/homes/{id}", 1)
+        mockMvc.perform(get("/api/{homeId}/events/{id}", 1, 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", Matchers.equalTo(1)))
-                .andExpect(jsonPath("$.name", Matchers.equalTo("Maison test")));
+                .andExpect(jsonPath("$.title", Matchers.equalTo("Titre test")));
     }
 
     @Test
-    void testCreateHome() throws Exception {
-        when(homeService.create(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(home1);
+    void testCreateEvent() throws Exception {
+        when(service.create(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(event1);
 
-        String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(home1);
+        String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(event1);
 
-        mockMvc.perform(post("/api/homes")
+        mockMvc.perform(post("/api/{homeId}/events", 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com")))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -144,16 +142,16 @@ public class HomeControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", Matchers.equalTo(1)))
-                .andExpect(jsonPath("$.name", Matchers.equalTo("Maison test")));
+                .andExpect(jsonPath("$.title", Matchers.equalTo("Titre test")));
     }
 
     @Test
-    void testUpdateHome() throws Exception {
-        when(homeService.update(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(home2);
+    void testUpdateEvent() throws Exception {
+        when(service.update(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(updatedEvent1);
 
-        String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(home2);
+        String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(event1);
 
-        mockMvc.perform(put("/api/homes/{id}", 1)
+        mockMvc.perform(put("/api/{homeId}/events/{id}", 1, 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com")))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -162,19 +160,19 @@ public class HomeControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", Matchers.equalTo(1)))
-                .andExpect(jsonPath("$.name", Matchers.equalTo("Maison test updated")));
+                .andExpect(jsonPath("$.title", Matchers.equalTo("Titre test maj")));
     }
 
     @Test
-    void testDeleteHome() throws Exception {
-        when(homeService.delete(ArgumentMatchers.any())).thenReturn("Le foyer a été supprimé");
+    void testDeleteEvent() throws Exception {
+        when(service.delete(ArgumentMatchers.any())).thenReturn("L'évènement a été supprimé");
 
-        String response = mockMvc.perform(delete("/api/homes/{id}", 1)
+        String response = mockMvc.perform(delete("/api/{homeId}/events/{id}", 1, 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk()).andReturn()
                 .getResponse().getContentAsString();
 
-        assertEquals("", "Le foyer a été supprimé", response);
+        assertEquals("", "L'évènement a été supprimé", response);
     }
 }

@@ -31,11 +31,11 @@ public class NoteEntity extends BaseEntity {
     @NotNull(message = "La note doit avoir au moins un texte")
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "home_id")
     private HomeEntity home;
 }

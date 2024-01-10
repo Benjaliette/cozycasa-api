@@ -2,6 +2,7 @@ package me.cozycosa.api.users.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import me.cozycosa.api.events.entities.EventEntity;
 import me.cozycosa.api.homes.entities.HomeEntity;
 import me.cozycosa.api.notes.entities.NoteEntity;
 import me.cozycosa.api.shared.BaseEntity;
@@ -42,8 +43,11 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Column(name = "admin", nullable = false, columnDefinition = "boolean default false")
     private boolean admin;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<NoteEntity> notes;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<EventEntity> events;
 
     @ManyToMany(mappedBy = "users")
     private List<HomeEntity> homes;

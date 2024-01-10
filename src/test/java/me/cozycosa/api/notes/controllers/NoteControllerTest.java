@@ -3,8 +3,11 @@ package me.cozycosa.api.notes.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import me.cozycosa.api.configuration.SpringSecurityConfiguration;
+import me.cozycosa.api.homes.mappers.HomeMapper;
+import me.cozycosa.api.homes.services.HomeService;
 import me.cozycosa.api.notes.DTO.NoteDto;
 import me.cozycosa.api.notes.services.NoteService;
+import me.cozycosa.api.users.services.TokenBlackList;
 import me.cozycosa.api.users.services.UserService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,8 +60,16 @@ public class NoteControllerTest {
     UserService userService;
 
     @MockBean
+    HomeService homeService;
+
+    @MockBean
+    HomeMapper homeMapper;
+
+    @MockBean
     AuthenticationManager authManager;
 
+    @MockBean
+    TokenBlackList tokenBlackList;
 
     private static ObjectMapper mapper = new ObjectMapper();
 

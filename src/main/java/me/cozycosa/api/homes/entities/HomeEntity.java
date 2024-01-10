@@ -2,6 +2,7 @@ package me.cozycosa.api.homes.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import me.cozycosa.api.events.entities.EventEntity;
 import me.cozycosa.api.notes.entities.NoteEntity;
 import me.cozycosa.api.shared.BaseEntity;
 import me.cozycosa.api.users.entities.UserEntity;
@@ -38,4 +39,7 @@ public class HomeEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "home", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<NoteEntity> notes;
+
+    @OneToMany(mappedBy = "home", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<EventEntity> events;
 }
