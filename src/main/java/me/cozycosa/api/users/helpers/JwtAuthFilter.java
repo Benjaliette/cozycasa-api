@@ -5,7 +5,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import me.cozycosa.api.users.services.TokenBlackList;
 import me.cozycosa.api.users.services.UserService;
+import org.antlr.v4.runtime.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,31 +15,33 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+
+import static me.cozycosa.api.users.helpers.JwtHelper.extractTokenFromRequest;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired
     UserService userService;
 
+    @Autowired
+    private TokenBlackList tokenBlackList;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
-            String authHeader = request.getHeader("Authorization");
-            String token = null;
-            String username = null;
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                token = authHeader.substring(7);
-                username = JwtHelper.extractUsername(token);
-            }
+            String token = extractTokenFromRequest(request);
 
-            if (token == null) {
+            if (token == null || tokenBlackList.isBlacklisted(token)) {
                 filterChain.doFilter(request, response);
                 return;
             }
+
+            String username = JwtHelper.extractUsername(token);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userService.loadUserByUsername(username);
