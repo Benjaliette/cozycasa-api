@@ -119,7 +119,7 @@ public class NoteControllerTest {
 
     @Test
     void testGetNotesById() throws Exception {
-        when(service.findById(ArgumentMatchers.any())).thenReturn(note1);
+        when(service.findById(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(note1);
 
         mockMvc.perform(get("/api/{homeId}/notes/{id}", 1, 1)
                         .header("API-KEY", apiKey)

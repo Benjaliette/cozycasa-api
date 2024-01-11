@@ -45,8 +45,8 @@ public class NoteController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<NoteDto> getNotesById(@PathVariable Long id) throws Exception {
-        return new ResponseEntity<>(service.findById(id), HttpStatus.OK);
+    public ResponseEntity<NoteDto> getNotesById(@PathVariable Long id, @PathVariable Long homeId) throws Exception {
+        return new ResponseEntity<>(service.findById(id, homeId), HttpStatus.OK);
     }
 
     @PostMapping()

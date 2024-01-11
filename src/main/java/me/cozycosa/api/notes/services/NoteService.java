@@ -35,8 +35,8 @@ public class NoteService {
         return mapper.listEntityToListDto(noteEntityList);
     }
 
-    public NoteDto findById(Long id) throws Exception {
-        NoteEntity note = repository.findById(id).orElseThrow(() -> {
+    public NoteDto findById(Long id, Long homeId) throws Exception {
+        NoteEntity note = repository.findById(id, homeId).orElseThrow(() -> {
             return new RecordNotAllowedException(HttpStatus.FORBIDDEN.value(), "Vous n'êtes pas à l'origine de cette note");
         });
 
@@ -44,11 +44,11 @@ public class NoteService {
     }
 
     @Transactional
-    public NoteDto create(NoteDto note, Long homeid, UserEntity currentUser) {
+    public NoteDto create(NoteDto note, Long homeId, UserEntity currentUser) {
         NoteEntity noteToSave = mapper.dtoToEntity(note);
         noteToSave.setUser(currentUser);
 
-        HomeEntity home = homeRepository.findById(homeid).orElseThrow(() -> {
+        HomeEntity home = homeRepository.findById(homeId).orElseThrow(() -> {
             return new RecordNotAllowedException(HttpStatus.FORBIDDEN.value(),
                     "Le foyer n'a pas pu être récupéré");
         });

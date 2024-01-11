@@ -1,10 +1,10 @@
-package me.cozycosa.api.events.controllers;
+package me.cozycosa.api.tasks.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import me.cozycosa.api.configuration.SpringSecurityConfiguration;
-import me.cozycosa.api.events.DTO.EventDto;
-import me.cozycosa.api.events.services.EventService;
+import me.cozycosa.api.tasks.DTO.TaskDto;
+import me.cozycosa.api.tasks.services.TaskService;
 import me.cozycosa.api.users.services.TokenBlackList;
 import me.cozycosa.api.users.services.UserService;
 import org.hamcrest.Matchers;
@@ -37,11 +37,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = EventController.class)
+@WebMvcTest(controllers = TaskController.class)
 @Import(SpringSecurityConfiguration.class)
-public class EventControllerTest {
-    private EventDto event1;
-    private EventDto updatedEvent1;
+public class TaskControllerTest {
+    private TaskDto task1;
+    private TaskDto updatedTask1;
     private UserDetails currentUser;
 
     @Value("${api.key}")
@@ -54,7 +54,7 @@ public class EventControllerTest {
     MockMvc mockMvc;
 
     @MockBean
-    EventService service;
+    TaskService service;
 
     @MockBean
     UserService userService;
@@ -71,22 +71,16 @@ public class EventControllerTest {
     public void setup() {
         mockMvc = MockMvcBuilders.webAppContextSetup(this.context).apply(springSecurity()).build();
 
-        event1 = EventDto.builder()
+        task1 = TaskDto.builder()
                 .id(1L)
-                .startDate(LocalDateTime.now())
-                .endDate(LocalDateTime.now().plusHours(1))
                 .title("Titre test")
-                .content("Contenu test")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        updatedEvent1 = EventDto.builder()
+        updatedTask1 = TaskDto.builder()
                 .id(1L)
-                .startDate(LocalDateTime.now())
-                .endDate(LocalDateTime.now().plusHours(1))
                 .title("Titre test maj")
-                .content("Contenu test maj")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -100,14 +94,14 @@ public class EventControllerTest {
     }
 
     @Test
-    void testGetAllEvents() throws Exception {
-        List<EventDto> eventList = new ArrayList<>();
+    void testGetAllTasks() throws Exception {
+        List<TaskDto> taskList = new ArrayList<>();
 
-        eventList.add(event1);
+        taskList.add(task1);
 
-        when(service.findAll(ArgumentMatchers.any())).thenReturn(eventList);
+        when(service.findAll(ArgumentMatchers.any())).thenReturn(taskList);
 
-        mockMvc.perform(get("/api/{homeId}/events", 1)
+        mockMvc.perform(get("/api/{homeId}/tasks", 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk())
@@ -116,10 +110,10 @@ public class EventControllerTest {
     }
 
     @Test
-    void testGetEventById() throws Exception {
-        when(service.findById(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(event1);
+    void testGetTaskById() throws Exception {
+        when(service.findById(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(task1);
 
-        mockMvc.perform(get("/api/{homeId}/events/{id}", 1, 1)
+        mockMvc.perform(get("/api/{homeId}/tasks/{id}", 1, 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk())
@@ -128,12 +122,12 @@ public class EventControllerTest {
     }
 
     @Test
-    void testCreateEvent() throws Exception {
-        when(service.create(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(event1);
+    void testCreateTask() throws Exception {
+        when(service.create(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(task1);
 
-        String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(event1);
+        String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(task1);
 
-        mockMvc.perform(post("/api/{homeId}/events", 1)
+        mockMvc.perform(post("/api/{homeId}/tasks", 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com")))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -146,12 +140,12 @@ public class EventControllerTest {
     }
 
     @Test
-    void testUpdateEvent() throws Exception {
-        when(service.update(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(updatedEvent1);
+    void testUpdateTask() throws Exception {
+        when(service.update(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(updatedTask1);
 
-        String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(event1);
+        String json = mapper.registerModule(new JavaTimeModule()).writeValueAsString(task1);
 
-        mockMvc.perform(put("/api/{homeId}/events/{id}", 1, 1)
+        mockMvc.perform(put("/api/{homeId}/tasks/{id}", 1, 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com")))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -164,15 +158,15 @@ public class EventControllerTest {
     }
 
     @Test
-    void testDeleteEvent() throws Exception {
-        when(service.delete(ArgumentMatchers.any())).thenReturn("L'évènement a été supprimé");
+    void testDeleteTask() throws Exception {
+        when(service.delete(ArgumentMatchers.any())).thenReturn("La tâche a été supprimé");
 
-        String response = mockMvc.perform(delete("/api/{homeId}/events/{id}", 1, 1)
+        String response = mockMvc.perform(delete("/api/{homeId}/tasks/{id}", 1, 1)
                         .header("API-KEY", apiKey)
                         .with(user(userService.loadUserByUsername("admin@mail.com"))))
                 .andExpect(status().isOk()).andReturn()
                 .getResponse().getContentAsString();
 
-        assertEquals("", "L'évènement a été supprimé", response);
+        assertEquals("", "La tâche a été supprimé", response);
     }
 }

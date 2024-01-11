@@ -31,8 +31,8 @@ public class EventService {
         return eventMapper.listEventEntityToListDto(eventEntitiesList);
     }
 
-    public EventDto findById(Long id) {
-        EventEntity eventEntity = eventRepository.findById(id).orElseThrow(() -> {
+    public EventDto findById(Long id, Long homeId) {
+        EventEntity eventEntity = eventRepository.findById(id, homeId).orElseThrow(() -> {
             return new RecordNotAllowedException(HttpStatus.FORBIDDEN.value(),
                     "L'évènement n'a pas pu être récupéré");
         });

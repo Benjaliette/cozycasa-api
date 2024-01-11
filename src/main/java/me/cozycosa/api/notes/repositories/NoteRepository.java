@@ -13,9 +13,13 @@ public interface NoteRepository extends JpaRepository<NoteEntity, Long> {
     @Query(value = "SELECT n FROM NoteEntity n JOIN FETCH n.home h WHERE h.id = :homeId")
     List<NoteEntity> findAll(Long homeId);
 
-    @Override
-    @Query(value = "SELECT n FROM NoteEntity n JOIN FETCH n.user u WHERE n.id = :id AND u.email = ?#{ principal?.username }")
-    Optional<NoteEntity> findById(Long id);
+    @Query(value = "SELECT n FROM NoteEntity n " +
+            "JOIN FETCH n.home h " +
+            "JOIN FETCH n.user u " +
+            "WHERE n.id = :id " +
+            "AND h.id = :homeId " +
+            "AND u.email = ?#{ principal?.username }")
+    Optional<NoteEntity> findById(Long id, Long homeId);
 
     @Override
     NoteEntity save(NoteEntity entity);

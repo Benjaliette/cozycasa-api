@@ -6,6 +6,7 @@ import me.cozycosa.api.events.entities.EventEntity;
 import me.cozycosa.api.homes.entities.HomeEntity;
 import me.cozycosa.api.notes.entities.NoteEntity;
 import me.cozycosa.api.shared.BaseEntity;
+import me.cozycosa.api.tasks.entities.TaskEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -48,6 +49,9 @@ public class UserEntity extends BaseEntity implements UserDetails {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<EventEntity> events;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<TaskEntity> tasks;
 
     @ManyToMany(mappedBy = "users")
     private List<HomeEntity> homes;

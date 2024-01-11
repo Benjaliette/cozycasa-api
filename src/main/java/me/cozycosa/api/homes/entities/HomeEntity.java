@@ -5,6 +5,7 @@ import lombok.*;
 import me.cozycosa.api.events.entities.EventEntity;
 import me.cozycosa.api.notes.entities.NoteEntity;
 import me.cozycosa.api.shared.BaseEntity;
+import me.cozycosa.api.tasks.entities.TaskEntity;
 import me.cozycosa.api.users.entities.UserEntity;
 
 import javax.validation.constraints.NotBlank;
@@ -42,4 +43,7 @@ public class HomeEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "home", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<EventEntity> events;
+
+    @OneToMany(mappedBy = "home", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<TaskEntity> tasks;
 }

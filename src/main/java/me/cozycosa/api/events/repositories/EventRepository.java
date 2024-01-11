@@ -12,9 +12,13 @@ public interface EventRepository extends JpaRepository<EventEntity, Long> {
     @Query(value = "SELECT n FROM EventEntity n JOIN FETCH n.home h WHERE h.id = :homeId")
     List<EventEntity> findAll(Long homeId);
 
-    @Override
-    @Query(value = "SELECT n FROM EventEntity n JOIN FETCH n.user u WHERE n.id = :id AND u.email = ?#{ principal?.username }")
-    Optional<EventEntity> findById(Long id);
+    @Query(value = "SELECT e FROM EventEntity e " +
+            "JOIN FETCH e.home h " +
+            "JOIN FETCH e.user u " +
+            "WHERE e.id = :id " +
+            "AND h.id = :homeId " +
+            "AND u.email = ?#{ principal?.username }")
+    Optional<EventEntity> findById(Long id, Long homeId);
 
     @Override
     EventEntity save(EventEntity entity);
