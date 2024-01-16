@@ -8,8 +8,9 @@ import me.cozycosa.api.shared.BaseEntity;
 import me.cozycosa.api.tasks.entities.TaskEntity;
 import me.cozycosa.api.users.entities.UserEntity;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 

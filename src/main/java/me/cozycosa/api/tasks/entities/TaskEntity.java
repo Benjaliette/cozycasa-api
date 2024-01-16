@@ -6,8 +6,8 @@ import me.cozycosa.api.homes.entities.HomeEntity;
 import me.cozycosa.api.shared.BaseEntity;
 import me.cozycosa.api.users.entities.UserEntity;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Getter

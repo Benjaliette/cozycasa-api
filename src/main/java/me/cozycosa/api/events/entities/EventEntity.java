@@ -8,8 +8,9 @@ import me.cozycosa.api.shared.BaseEntity;
 import me.cozycosa.api.users.entities.UserEntity;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 

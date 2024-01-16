@@ -8,7 +8,7 @@ import me.cozycosa.api.shared.BaseEntity;
 import me.cozycosa.api.users.entities.UserEntity;
 import org.hibernate.annotations.Cascade;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Getter
