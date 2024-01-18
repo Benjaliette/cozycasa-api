@@ -39,6 +39,8 @@ public class UserEntity extends BaseEntity implements UserDetails {
 
     @Column(name = "password")
     @NotBlank(message = "Le mot de passe doit être renseigné")
+    @Size(min = 6, message = "Le mot de passe doit être entre 6 et 20 caractères")
+    @Size(min = 20, message = "Le mot de passe doit être entre 6 et 20 caractères")
     private String password;
 
     @Column(name = "admin", nullable = false, columnDefinition = "boolean default false")
