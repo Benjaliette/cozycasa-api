@@ -11,7 +11,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,8 +37,6 @@ public class UserEntity extends BaseEntity implements UserDetails {
     private String email;
 
     @Column(name = "password", length = 255, nullable = false)
-    @NotBlank(message = "Le mot de passe doit être renseigné")
-    @Size(min = 6, max = 20, message = "Le mot de passe doit être entre 6 et 20 caractères")
     private String password;
 
     @Column(name = "admin", nullable = false, columnDefinition = "boolean default false")

@@ -15,20 +15,22 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @ControllerAdvice
 @RestController
-public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
-    @ExceptionHandler(value = {ConstraintViolationException.class})
-    public ResponseEntity<Object> handleConstraint(ConstraintViolationException ex,
-                                                   WebRequest request) {
-        Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
+public class CustomResponseEntityArgsNotValidException {
+    @ExceptionHandler(value = {MethodArgumentNotValidException.class})
+    public ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+                                                               WebRequest request) {
+        List<FieldError> fieldErrors = ex.getFieldErrors();
 
-        Map<String, String> messages = new HashMap<>(constraintViolations.size());
+        Map<String, String> messages = new HashMap<>(fieldErrors.size());
 
-        constraintViolations.forEach(violation -> {
-            messages.put(violation.getPropertyPath().toString(), violation.getMessage());
+        fieldErrors.forEach(error -> {
+            messages.put(error.getField().toString(), error.getDefaultMessage());
         });
 
         ExceptionResponse exceptionResponse = new ExceptionResponse(LocalDateTime.now(), "Record validation error",
